@@ -7,6 +7,19 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
+type ModpackRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  minecraft_version: string;
+  mod_loader: string;
+  mod_loader_version: string;
+  logo_url: string | null;
+  version: string;
+  updated_at: string;
+  modpack_mods: { count: number }[];
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
@@ -14,7 +27,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   // Fetch modpacks with mod count
-  const { data: modpacks, error } = await supabase
+  const { data: modpacks, error } = (await supabase
     .from("modpacks")
     .select(
       `
@@ -31,7 +44,10 @@ export default async function DashboardPage() {
     `
     )
     .eq("user_id", user!.id)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })) as {
+    data: ModpackRow[] | null;
+    error: { message: string } | null;
+  };
 
   return (
     <div className="space-y-8">
