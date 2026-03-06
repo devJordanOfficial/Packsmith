@@ -19,8 +19,8 @@ export default async function ModpacksLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select("username, avatar_url")
-    .eq("id", user.id)
-    .single();
+    .eq("id", user!.id)
+    .maybeSingle() as { data: { username: string | null; avatar_url: string | null } | null };
 
   return (
     <div className="min-h-screen bg-background">
