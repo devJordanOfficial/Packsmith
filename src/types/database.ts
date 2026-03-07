@@ -29,6 +29,7 @@ export interface Database {
           avatar_url?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       modpacks: {
         Row: {
@@ -67,6 +68,7 @@ export interface Database {
           version?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       modpack_mods: {
         Row: {
@@ -98,10 +100,19 @@ export interface Database {
           summary?: string | null;
           logo_url?: string | null;
         };
+        Relationships: [
+          {
+            foreignKeyName: "modpack_mods_modpack_id_fkey";
+            columns: ["modpack_id"];
+            isOneToOne: false;
+            referencedRelation: "modpacks";
+            referencedColumns: ["id"];
+          }
+        ];
       };
     };
-    Views: {};
-    Functions: {};
-    Enums: {};
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
   };
 }

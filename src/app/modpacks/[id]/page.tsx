@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import type { Modpack } from "@/types";
 import { ModpackDetail } from "./ModpackDetail";
 
 interface Props {
@@ -32,7 +33,7 @@ export default async function ModpackPage({ params }: Props) {
     .select("*")
     .eq("id", id)
     .eq("user_id", user!.id)
-    .single();
+    .single() as { data: Modpack | null };
 
   if (!modpack) notFound();
 
