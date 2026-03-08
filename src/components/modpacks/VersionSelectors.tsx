@@ -4,10 +4,17 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { MOD_LOADERS, type ModLoader, type VersionsApiResponse } from "@/types";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getLoaderVersions,
   getSupportedMcVersions,
   getDefaultLoaderVersion,
-  getLoaderVersionLabel,
+  getLoaderVersionTag,
   getLoaderUnavailableReason,
   loaderSupportsMcVersion,
 } from "@/lib/versions";
@@ -44,7 +51,6 @@ export function VersionSelectors({
   const mcVersionOptions = useMemo(() => {
     if (!versions) return minecraftVersion ? [minecraftVersion] : [];
     const supported = getSupportedMcVersions(modLoader, versions.minecraft, versions);
-    // Always include the currently selected version in case it's an existing value
     if (minecraftVersion && !supported.includes(minecraftVersion)) {
       return [minecraftVersion, ...supported];
     }
@@ -57,7 +63,7 @@ export function VersionSelectors({
     return getLoaderVersions(modLoader, minecraftVersion, versions);
   }, [versions, modLoader, minecraftVersion]);
 
-  // Include the current value in the select even if it's not in the live list
+  // Include the current value in the select even if it's not in the live API list
   const effectiveVersionOptions = useMemo(() => {
     if (!modLoaderVersion || loaderVersionOptions.some((v) => v.version === modLoaderVersion)) {
       return loaderVersionOptions;
@@ -106,23 +112,32 @@ export function VersionSelectors({
         <label className="text-sm font-medium text-foreground">
           Minecraft Version <span className="text-destructive">*</span>
         </label>
-        <select
-          required
-          disabled={versionsLoading}
-          value={minecraftVersion}
-          onChange={(e) => handleMcVersionChange(e.target.value)}
-          className={cn(inputClass, versionsLoading && "opacity-50")}
-        >
-          {versionsLoading ? (
-            <option value={minecraftVersion}>{minecraftVersion || "Loading…"}</option>
-          ) : (
-            mcVersionOptions.map((v) => (
-              <option key={v} value={v}>
-                {v === versions?.minecraft[0] ? `${v} (latest)` : v}
-              </option>
-            ))
-          )}
-        </select>
+        {versionsLoading ? (
+          <select disabled className={cn(inputClass, "opacity-50")}>
+            <option>{minecraftVersion || "Loading…"}</option>
+          </select>
+        ) : (
+          <Select required value={minecraftVersion} onValueChange={handleMcVersionChange}>
+            <SelectTrigger
+              className={cn(
+                inputClass,
+                "flex items-center justify-between [&>span]:line-clamp-1"
+              )}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {mcVersionOptions.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {v}
+                  {v === versions?.minecraft[0] && (
+                    <span className="text-muted-foreground"> (latest)</span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Mod Loader — button group */}
@@ -137,15 +152,15 @@ export function VersionSelectors({
               ? getLoaderUnavailableReason(value as ModLoader, minecraftVersion, versions)
               : null;
             const isUnavailable = !!reason;
-            return (
+
+            const btn = (
               <button
                 key={value}
                 type="button"
                 disabled={isUnavailable || versionsLoading}
-                title={reason ?? undefined}
                 onClick={() => handleLoaderChange(value as ModLoader)}
                 className={cn(
-                  "rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+                  "w-full rounded-md border px-3 py-2 text-sm font-medium transition-colors",
                   isSelected
                     ? "border-primary bg-primary text-primary-foreground"
                     : isUnavailable
@@ -156,6 +171,15 @@ export function VersionSelectors({
                 {label}
               </button>
             );
+
+            // Disabled buttons don't fire hover events, so we wrap in a span to show the tooltip
+            return isUnavailable ? (
+              <span key={value} title={reason} className="cursor-not-allowed">
+                {btn}
+              </span>
+            ) : (
+              <span key={value}>{btn}</span>
+            );
           })}
         </div>
         {loaderWarning && (
@@ -163,7 +187,7 @@ export function VersionSelectors({
         )}
       </div>
 
-      {/* Loader Version */}
+      {/* Loader Version — Radix Select for styled gray tags */}
       <div className="space-y-1.5">
         <label className="text-sm font-medium text-foreground">
           Loader Version <span className="text-destructive">*</span>
@@ -173,23 +197,33 @@ export function VersionSelectors({
             <option>Loading…</option>
           </select>
         ) : effectiveVersionOptions.length > 0 ? (
-          <select
+          <Select
             required
             value={modLoaderVersion}
-            onChange={(e) => onModLoaderVersionChange(e.target.value)}
-            className={inputClass}
+            onValueChange={onModLoaderVersionChange}
           >
-            {!modLoaderVersion && (
-              <option value="" disabled>
-                Select a version…
-              </option>
-            )}
-            {effectiveVersionOptions.map((lv) => (
-              <option key={lv.version} value={lv.version}>
-                {getLoaderVersionLabel(lv)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className={cn(
+                inputClass,
+                "flex items-center justify-between [&>span]:line-clamp-1"
+              )}
+            >
+              <SelectValue placeholder="Select a version…" />
+            </SelectTrigger>
+            <SelectContent>
+              {effectiveVersionOptions.map((lv) => {
+                const tag = getLoaderVersionTag(lv);
+                return (
+                  <SelectItem key={lv.version} value={lv.version}>
+                    {lv.version}
+                    {tag && (
+                      <span className="text-muted-foreground"> ({tag})</span>
+                    )}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         ) : (
           <input
             type="text"

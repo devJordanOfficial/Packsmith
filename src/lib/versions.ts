@@ -57,11 +57,11 @@ export function getDefaultLoaderVersion(
   return (recommended ?? latest ?? versions[0])?.version ?? "";
 }
 
-export function getLoaderVersionLabel(lv: LoaderVersion): string {
-  const tags: string[] = [];
-  if (lv.isRecommended) tags.push("recommended");
-  if (lv.isLatest) tags.push("latest");
-  return tags.length > 0 ? `${lv.version} (${tags.join(", ")})` : lv.version;
+// Returns just the tag string (without version), with recommended taking precedence over latest
+export function getLoaderVersionTag(lv: LoaderVersion): string | null {
+  if (lv.isRecommended) return "recommended";
+  if (lv.isLatest) return "latest";
+  return null;
 }
 
 export function getLoaderUnavailableReason(
