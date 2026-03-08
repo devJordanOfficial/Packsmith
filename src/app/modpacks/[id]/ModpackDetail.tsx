@@ -6,7 +6,9 @@ import Link from "next/link";
 import { ArrowLeft, Pencil, Trash2, Package } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { MOD_LOADERS, MINECRAFT_VERSIONS, type Modpack, type ModLoader } from "@/types";
+import { MOD_LOADERS, type Modpack, type ModLoader } from "@/types";
+import { useVersions } from "@/hooks/useVersions";
+import { VersionSelectors } from "@/components/modpacks/VersionSelectors";
 
 interface Props {
   modpack: Modpack;
@@ -14,13 +16,15 @@ interface Props {
 
 export function ModpackDetail({ modpack }: Props) {
   const router = useRouter();
+  const { data: versions, loading: versionsLoading } = useVersions();
+
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Edit form state
+  // Edit form state — pre-populated from existing modpack
   const [name, setName] = useState(modpack.name);
   const [description, setDescription] = useState(modpack.description ?? "");
   const [minecraftVersion, setMinecraftVersion] = useState(modpack.minecraft_version);
@@ -143,56 +147,22 @@ export function ModpackDetail({ modpack }: Props) {
                 />
               </div>
 
-              {/* MC Version */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  Minecraft Version <span className="text-destructive">*</span>
-                </label>
-                <select
-                  required
-                  value={minecraftVersion}
-                  onChange={(e) => setMinecraftVersion(e.target.value)}
-                  className={inputClass}
-                >
-                  {MINECRAFT_VERSIONS.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Mod Loader */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  Mod Loader <span className="text-destructive">*</span>
-                </label>
-                <select
-                  required
-                  value={modLoader}
-                  onChange={(e) => setModLoader(e.target.value as ModLoader)}
-                  className={inputClass}
-                >
-                  {MOD_LOADERS.map((l) => (
-                    <option key={l.value} value={l.value}>{l.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Loader Version */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">
-                  Loader Version <span className="text-destructive">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={modLoaderVersion}
-                  onChange={(e) => setModLoaderVersion(e.target.value)}
-                  className={inputClass}
+              {/* MC Version + Mod Loader + Loader Version */}
+              <div className="sm:col-span-2">
+                <VersionSelectors
+                  minecraftVersion={minecraftVersion}
+                  modLoader={modLoader}
+                  modLoaderVersion={modLoaderVersion}
+                  onMinecraftVersionChange={setMinecraftVersion}
+                  onModLoaderChange={setModLoader}
+                  onModLoaderVersionChange={setModLoaderVersion}
+                  versions={versions}
+                  versionsLoading={versionsLoading}
                 />
               </div>
 
               {/* Pack Version */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 sm:col-span-2">
                 <label className="text-sm font-medium text-foreground">
                   Pack Version <span className="text-destructive">*</span>
                 </label>

@@ -46,18 +46,21 @@ export const MOD_LOADERS: { value: ModLoader; label: string }[] = [
   { value: "neoforge", label: "NeoForge" },
 ];
 
-export const MINECRAFT_VERSIONS = [
-  "1.21.4",
-  "1.21.1",
-  "1.20.6",
-  "1.20.4",
-  "1.20.1",
-  "1.19.4",
-  "1.19.2",
-  "1.18.2",
-  "1.16.5",
-  "1.12.2",
-];
+// ─── Versions API ─────────────────────────────────────────────────────────────
+
+export interface LoaderVersion {
+  version: string;
+  isLatest: boolean;
+  isRecommended: boolean;
+}
+
+export interface VersionsApiResponse {
+  minecraft: string[];
+  forge: Record<string, LoaderVersion[]>;
+  fabric: LoaderVersion[];
+  quilt: LoaderVersion[];
+  neoforge: Record<string, LoaderVersion[]>;
+}
 
 // ─── Modpack with extras ──────────────────────────────────────────────────────
 

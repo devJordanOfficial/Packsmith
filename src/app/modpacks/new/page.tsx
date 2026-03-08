@@ -1,24 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { MOD_LOADERS, MINECRAFT_VERSIONS, type ModLoader } from "@/types";
+import { getDefaultLoaderVersion, getSupportedMcVersions } from "@/lib/versions";
+import { useVersions } from "@/hooks/useVersions";
+import { VersionSelectors } from "@/components/modpacks/VersionSelectors";
+import { type ModLoader } from "@/types";
+
+const INITIAL_MC_VERSION = "1.21.4";
+const INITIAL_LOADER: ModLoader = "forge";
 
 export default function NewModpackPage() {
   const router = useRouter();
+  const { data: versions, loading: versionsLoading } = useVersions();
+  const autoPopulated = useRef(false);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [minecraftVersion, setMinecraftVersion] = useState(MINECRAFT_VERSIONS[0]);
-  const [modLoader, setModLoader] = useState<ModLoader>("forge");
+  const [minecraftVersion, setMinecraftVersion] = useState(INITIAL_MC_VERSION);
+  const [modLoader, setModLoader] = useState<ModLoader>(INITIAL_LOADER);
   const [modLoaderVersion, setModLoaderVersion] = useState("");
   const [version, setVersion] = useState("1.0.0");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Once version data loads, auto-select recommended MC + loader version for the defaults
+  useEffect(() => {
+    if (autoPopulated.current || !versions) return;
+    autoPopulated.current = true;
+
+    const supported = getSupportedMcVersions(INITIAL_LOADER, versions.minecraft, versions);
+    const bestMc = supported.includes(INITIAL_MC_VERSION)
+      ? INITIAL_MC_VERSION
+      : (supported[0] ?? INITIAL_MC_VERSION);
+
+    if (bestMc !== INITIAL_MC_VERSION) setMinecraftVersion(bestMc);
+
+    const def = getDefaultLoaderVersion(INITIAL_LOADER, bestMc, versions);
+    if (def) setModLoaderVersion(def);
+  }, [versions]); // intentionally only runs when versions first loads
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,64 +142,17 @@ export default function NewModpackPage() {
           />
         </div>
 
-        {/* Minecraft Version */}
-        <div className="space-y-1.5">
-          <label htmlFor="mc-version" className="text-sm font-medium text-foreground">
-            Minecraft Version <span className="text-destructive">*</span>
-          </label>
-          <select
-            id="mc-version"
-            required
-            value={minecraftVersion}
-            onChange={(e) => setMinecraftVersion(e.target.value)}
-            className={inputClass}
-          >
-            {MINECRAFT_VERSIONS.map((v) => (
-              <option key={v} value={v}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Mod Loader */}
-        <div className="space-y-1.5">
-          <label htmlFor="mod-loader" className="text-sm font-medium text-foreground">
-            Mod Loader <span className="text-destructive">*</span>
-          </label>
-          <select
-            id="mod-loader"
-            required
-            value={modLoader}
-            onChange={(e) => setModLoader(e.target.value as ModLoader)}
-            className={inputClass}
-          >
-            {MOD_LOADERS.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Mod Loader Version */}
-        <div className="space-y-1.5">
-          <label htmlFor="loader-version" className="text-sm font-medium text-foreground">
-            Mod Loader Version <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="loader-version"
-            type="text"
-            required
-            value={modLoaderVersion}
-            onChange={(e) => setModLoaderVersion(e.target.value)}
-            placeholder="e.g. 47.3.0"
-            className={inputClass}
-          />
-          <p className="text-xs text-muted-foreground">
-            The version of {MOD_LOADERS.find((l) => l.value === modLoader)?.label} for MC {minecraftVersion}.
-          </p>
-        </div>
+        {/* MC version, Mod Loader, Loader Version */}
+        <VersionSelectors
+          minecraftVersion={minecraftVersion}
+          modLoader={modLoader}
+          modLoaderVersion={modLoaderVersion}
+          onMinecraftVersionChange={setMinecraftVersion}
+          onModLoaderChange={setModLoader}
+          onModLoaderVersionChange={setModLoaderVersion}
+          versions={versions}
+          versionsLoading={versionsLoading}
+        />
 
         {/* Pack Version */}
         <div className="space-y-1.5">
