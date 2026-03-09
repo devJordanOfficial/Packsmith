@@ -40,8 +40,6 @@ Packsmith is a passion project and is not currently open to external contributio
 
 ## License
 
-## License
-
 Packsmith is licensed under the [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html). You're free to view, fork, and modify the code, but any distributed or hosted version must also be open sourced under the same license.
 
 ---

@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getInitials, cn } from "@/lib/utils";
-import { LogOut, Package, ChevronDown } from "lucide-react";
+import { LogOut, ChevronDown } from "lucide-react";
 
 interface NavbarProps {
   username: string;
@@ -30,9 +31,13 @@ export function Navbar({ username, avatarUrl }: NavbarProps) {
       <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center gap-2 group">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 border border-primary/20 group-hover:bg-primary/20 transition-colors">
-            <Package className="h-4 w-4 text-primary" />
-          </div>
+          <Image
+            src="/icon0.svg"
+            alt="Packsmith logo"
+            width={28}
+            height={28}
+            className="h-7 w-7"
+          />
           <span className="font-display text-lg font-bold tracking-tight text-foreground">
             Packsmith
           </span>
