@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getInitials, cn } from "@/lib/utils";
-import { LogOut, ChevronDown } from "lucide-react";
+import { LogOut, Settings, ChevronDown } from "lucide-react";
 
 interface NavbarProps {
   username: string;
@@ -101,6 +101,14 @@ export function Navbar({ username, avatarUrl }: NavbarProps) {
                     {username}
                   </p>
                 </div>
+                <Link
+                  href="/dashboard/settings"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
                 <button
                   onClick={handleSignOut}
                   disabled={signingOut}
